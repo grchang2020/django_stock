@@ -21,7 +21,7 @@ def home(request):
 		return render(request, 'home.html', {'api': api})
 	
 	else:
-		return render(request, 'home.html', {'ticker': "Enter a ticker symbol above."})
+		return render(request, 'home.html', {'ticker': "Enter a ticker symbol above to view its quote."})
 
 	
 def about(request):
@@ -32,6 +32,8 @@ def add_stock(request):
 	import json
 
 	if request.method == 'POST':
+		# TBD - to catch empty post, otherwise it will crash
+
 		form = StockForm(request.POST or None)
 
 		if form.is_valid():
@@ -39,10 +41,10 @@ def add_stock(request):
 			messages.success(request, ("Stock has been added"))
 			return redirect('add_stock')
 	else:
-		ticker = Stock.objects.all()
+		tickers = Stock.objects.all()
 		output = []
-		for ticker_item in ticker:
-			url = "https://cloud.iexapis.com/stable/stock/" + str(ticker_item) + "/quote?token=pk_332a32e0ec8e40e78b2927fbb55992fd"
+		for ticker in tickers:
+			url = "https://cloud.iexapis.com/stable/stock/" + str(ticker) + "/quote?token=pk_332a32e0ec8e40e78b2927fbb55992fd"
 			api_request = requests.get(url)
 
 			try:
@@ -51,7 +53,7 @@ def add_stock(request):
 			except Exception as e:
 				api = "Error"
 
-		return render(request, 'add_stock.html', {'ticker': ticker, 'output': output})
+		return render(request, 'add_stock.html', {'tickers': tickers, 'output': output})
 
 def delete(request, stock_id):
 	item = Stock.objects.get(pk=stock_id)
@@ -59,9 +61,14 @@ def delete(request, stock_id):
 	messages.success(request, ("Stock has been deleted"))
 	return redirect(delete_stock)
 
-def delete_stock(request):
-	ticker = Stock.objects.all()
-	return render(request, 'delete_stock.html', {'ticker': ticker})
+def delete_ticker(request, ticker):
+	item = Stock.objects.get(ticker=ticker)
+	item.delete()
+	messages.success(request, ("Stock " + ticker + " has been deleted!"))
+	return redirect(add_stock)
 
-# iex cloud key
-# pk_332a32e0ec8e40e78b2927fbb55992fd
+
+def delete_stock(request):
+	tickers = Stock.objects.all()
+	return render(request, 'delete_stock.html', {'tickers': tickers})
+

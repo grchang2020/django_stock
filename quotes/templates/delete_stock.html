@@ -2,8 +2,8 @@
 {% block content %}
 <h1>Delete Stock</h1>
 <br/><br/>
-{% if ticker %}
-	{% for item in ticker %}
+{% if tickers %}
+	{% for item in tickers %}
 		{{ item }} <a href="{% url 'delete' item.id %}" class="btn btn-secondary">Delete</a><br/><br/>
 	{% endfor %}
 
